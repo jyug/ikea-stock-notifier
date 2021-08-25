@@ -44,10 +44,6 @@ def crawl_data():
             print('Error checking stock... {}'.format(os.getenv('SEND_ERROR_EMAIL')))
             return
         #Notify user
-        notify = False
-        subject_obj = dict('in_stock'='Your IKEA product ' + str(item['product_name']) + ' is back in stock!', \
-                'changed'='Your IKEA product ' + str(item['product_name']) + ' availability changed')
-        
         for info in updated_info:
             #if this product is back in stock and we haven't notified user within 20 mins
             if info['quantity'] > 0:
@@ -57,20 +53,6 @@ def crawl_data():
                     notify('changed', info)
             elif info['quantity_old'] > 0:
                 notify('out_of_stock', info)
-        if notify:
-            #generate email content
-            receiver = users_table.find_one({'_id': user_id})
-            content = generate_email_content(receiver['user_name'], item['_id'], item['product_name'], item['product_desc'], item['product_url'], updated_info)
-            #send email
-            send_email(subject='Your IKEA product ' + str(item['product_name']) + ' is back in stock!', content=content, user_id=user_id)
-            print("Email sent successfully")
-            #update notify time
-            stocks_table.update_one(
-                {'_id': item['_id']},
-                {'$set':
-                    {'last_notify_time': datetime.utcnow()}
-                }
-            )
     print("Finished updating DB...")
     
 def notify(status, data):
