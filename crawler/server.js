@@ -14,5 +14,3 @@ app.get('/crawl', async (req, res) => {
   }));
   res.status(200).send(results);
 });
-
-app.listen(80, () => console.log('backend on port 3000!'));
