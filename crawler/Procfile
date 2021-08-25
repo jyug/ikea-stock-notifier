@@ -1,1 +1,1 @@
-clock: python crawler.py
+web: npm start
