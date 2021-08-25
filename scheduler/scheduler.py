@@ -30,7 +30,7 @@ def crawl_data():
         try:
             for store in item['stock_info']:
                 store_list.append(store['store_id'])
-            updated_info = get_stock_info(item['product_id'], store_list)
+            updated_info = get_stock_info(item['product_id'], item['stock_info'])
             stocks_table.update_one(
                 {'_id': item['_id']},
                 {'$set':
@@ -45,11 +45,18 @@ def crawl_data():
             return
         #Notify user
         notify = False
+        subject_obj = dict('in_stock'='Your IKEA product ' + str(item['product_name']) + ' is back in stock!', \
+                'changed'='Your IKEA product ' + str(item['product_name']) + ' availability changed')
+        
         for info in updated_info:
             #if this product is back in stock and we haven't notified user within 20 mins
-            if (info['quantity'] > 0) and (item['last_notify_time'] is None or ((datetime.utcnow() - item['last_notify_time']).seconds / 60 > 20)):
-                notify = True
-            print(info['quantity'], item['last_notify_time'], notify)
+            if info['quantity'] > 0:
+                if item['last_notify_time'] is None:
+                    notify('in_stock', info)
+                elif info['quantity_old'] != info['quantity'] and info['quantity_old'] > 0 and ((datetime.utcnow() - item['last_notify_time']).seconds / 60 > 20)):
+                    notify('changed', info)
+            elif info['quantity_old'] > 0:
+                notify('out_of_stock', info)
         if notify:
             #generate email content
             receiver = users_table.find_one({'_id': user_id})
@@ -66,6 +73,25 @@ def crawl_data():
             )
     print("Finished updating DB...")
     
+def notify(status, data):
+    subject_obj = {
+        'in_stock': ' is back in stock!',
+        'changed': ' availability changed',
+        'out_of_stock': ' now sold out at {}'.format(get_store_name_by_id(data['store_id']))
+    }
+    #generate email content
+    receiver = users_table.find_one({'_id': user_id})
+    content = generate_email_content(receiver['user_name'], item['_id'], item['product_name'], item['product_desc'], item['product_url'], updated_info)
+    #send emailc
+    send_email(subject='Your IKEA product ' + str(item['product_name']) + subject_obj[status], content=content, user_id=user_id)
+    print("Email sent successfully")
+    #update notify time
+    stocks_table.update_one(
+        {'_id': item['_id']},
+        {'$set':
+            {'last_notify_time': datetime.utcnow()}
+        }
+    )
 
 def send_email(subject, content, user_id):
     #get email of receiver
@@ -74,15 +100,29 @@ def send_email(subject, content, user_id):
     yag = yagmail.SMTP(user=os.environ['MAILACCOUNT'], password=os.environ['MAILPASSWD'])
     yag.send(to=receiver['user_email'], newline_to_break=False , subject=subject, contents=content)
 
-def get_stock_info(product_id, store_list):
+def get_stock_info(product_id, stock_info):
     ## database API
+    store_list = [each.get('store_id') for each in stock_info if 'store_id' in each]
     stock_url = '{}/crawl?productId={}&buCodes={}'.format(os.getenv('CRAWLER'), str(product_id), json.dumps(store_list))
     r = requests.get(stock_url)
     assert(r.status_code == 200)
     res = []
     for store in r.json():
+        _dict = {'store_id': store.get('buCode', 'N/A'), 'quantity': int(store.get('stock', 0), 'quantity_old': -1)}
+        store_old = [each for each in stock_info if each.get('store_id') == store.get('buCode')]
+        if len(store_old) > 0:
+            _dict.update(quantity_old: store_old[0].get('quantity'))
         res.append({'store_id': store.get('buCode', 'N/A'), 'quantity': int(store.get('stock', 0))})
     return res
+
+def get_store_name_by_id(store_id):
+    with open('assets/store.json') as f:
+        store_data = json.load(f)
+    store_dict = dict()
+    for store in store_data:
+        if store_number == store_id:
+            return store_city
+    return 'N/A'
 
 def generate_email_content(receiver_name, crawl_id, product_name, product_desc, product_url, stocks_info):
     f = open('./assets/email_template.html', 'r')
@@ -95,19 +135,9 @@ def generate_email_content(receiver_name, crawl_id, product_name, product_desc, 
         main_image = images[1]
     else:
         main_image = image[0]
-    #get stoock info
-    with open('assets/store.json') as f:
-        store_data = json.load(f)
-    store_dict = dict()
-    for store in store_data:
-        store_city = store['storeCity']
-        store_number = store['storeNumber']
-        if store_city != "" and store_number != "":
-            store_dict[store_number] = store_city
-    
     store_info = ''
     for info in stocks_info:
-        store_info += store_dict[info['store_id']] + ' has ' + str(info['quantity']) + " left!<br>" 
+        store_info += get_store_name_by_id(info['store_id']) + ' has ' + str(info['quantity']) + " left!<br>" 
 
     unsubscribe_url = os.environ['DOMAIN'] + 'products/' + str(crawl_id)
     date = calendar.month_name[datetime.today().month] + ' ' + str(datetime.today().day) + '.' + str(datetime.today().year)
