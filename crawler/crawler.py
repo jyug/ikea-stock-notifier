@@ -37,7 +37,7 @@ def crawl_data():
                 }
             )
         except Exception as e:
-            send_email(subject='Error Ikea Stock Checker', contents=str(e)
+            send_email(subject='Error Ikea Stock Checker', contents=str(e))
             print('Error checking stock...')
             return
         #Notify user
