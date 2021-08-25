@@ -76,10 +76,10 @@ def send_email(subject, content, user_id):
 def get_stock_info(product_id, store_list):
     ## database API
     stock_url = '{}/crawl?productId={}&buCodes={}'.format(os.getenv('CRAWLER'), str(product_id), json.dumps(store_list))
-    res = requests.get(stock_url)
-    assert(res.status_code == 200)
-    stock_data = res.json()
-    for store in stock_data:
+    r = requests.get(stock_url)
+    assert(r.status_code == 200)
+    res = []
+    for store in r.json():
         res.append({'store_id': store.get('buCode', 'N/A'), 'quantity': int(store.get('stock', 0))})
     return res
 
