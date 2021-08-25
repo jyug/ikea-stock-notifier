@@ -55,7 +55,7 @@ def crawl_data():
             receiver = users_table.find_one({'_id': user_id})
             content = generate_email_content(receiver['user_name'], item['_id'], item['product_name'], item['product_desc'], item['product_url'], updated_info)
             #send email
-            send_email(subject='Your IKEA product ' + str(item['product_name']) + ' is back in stock!', contents=content, user_id=user_id)
+            send_email(subject='Your IKEA product ' + str(item['product_name']) + ' is back in stock!', content=content, user_id=user_id)
             print("Email sent successfully")
             #update notify time
             stocks_table.update_one(
