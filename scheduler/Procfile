@@ -1,1 +1,1 @@
-clock: python crawler.py
+clock: python scheduler.py

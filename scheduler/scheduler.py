@@ -73,17 +73,14 @@ def send_email(subject, content, user_id):
     yag = yagmail.SMTP(user=os.environ['MAILACCOUNT'], password=os.environ['MAILPASSWD'])
     yag.send(to=receiver['user_email'], newline_to_break=False , subject=subject, contents=content)
 
-# def get_stock_info(product_id, store_list):
-#     ## database API
-#     stock_url = "https://iows.ikea.com/retail/iows/catalog/availability/us/en/stores/" + str(product_id)
-#     req = requests.get(stock_url)
-#     soup = BeautifulSoup(req.content, 'xml')
-#     #print(soup.prettify())
-#     res = list()
-#     for store_id in store_list:
-#         stock = soup.find('localStore', {"buCode": store_id})
-#         res.append({'store_id': stock['buCode'], 'quantity': int(stock.availableStock.string)})
-#     return res
+def get_stock_info(product_id, store_list):
+    ## database API
+    stock_url = '{}?productId={}&buCodes={}'.format(os.getenv('CRAWLER'), str(product_id), json.dumps(store_list))
+    res = requests.get(stock_url)
+    stock_data = res.json()
+    for store in stock_data:
+        res.append({'store_id': store.get('buCode', 'N/A'), 'quantity': int(store.get('stock', 0))})
+    return res
 
 def generate_email_content(receiver_name, crawl_id, product_name, product_desc, product_url, stocks_info):
     f = open('./assets/email_template.html', 'r')
