@@ -5,7 +5,7 @@ const checker = require('ikea-availability-checker');
 
 const app = express();
 
-app.get('/', async (req, res) => {
+app.get('/crawl', async (req, res) => {
   const buCodes = JSON.parse(req.query.buCodes || '[]');
   const productId = req.query.productId.toString();
   console.log(buCodes, productId)
