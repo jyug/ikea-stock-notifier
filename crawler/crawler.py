@@ -38,7 +38,7 @@ def crawl_data():
                 }
             )
         except Exception as e:
-            err_content = '{}\n{}'.format(str(e), traceback.print_exc())
+            err_content = '{}\n{}'.format(str(e), traceback.format_exc())
             send_email(subject='Error Ikea Stock Checker', content=err_content, user_id=user_id)
             print('Error checking stock...')
             return
