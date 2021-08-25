@@ -8,6 +8,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 import os
 import yagmail
 import json
+import traceback
 
 db_url = os.environ['DATABASEURL']
 client = MongoClient(db_url)
@@ -37,7 +38,8 @@ def crawl_data():
                 }
             )
         except Exception as e:
-            send_email(subject='Error Ikea Stock Checker', content=str(e), user_id=user_id)
+            err_content = '{}\n{}'.format(str(e), traceback.print_exc())
+            send_email(subject='Error Ikea Stock Checker', content=err_content, user_id=user_id)
             print('Error checking stock...')
             return
         #Notify user
