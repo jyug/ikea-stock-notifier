@@ -46,9 +46,10 @@ def crawl_data():
         #Notify user
         notify = False
         for info in updated_info:
-            #if this product is back in stock and we haven't notified user within 12 hours
-            if (info['quantity'] > 0) and (item['last_notify_time'] == None or ((datetime.utcnow() - item['last_notify_time']).seconds / 60 > 20)):
+            #if this product is back in stock and we haven't notified user within 20 mins
+            if (info['quantity'] > 0) and (item['last_notify_time'] is None or ((datetime.utcnow() - item['last_notify_time']).seconds / 60 > 20)):
                 notify = True
+            print(info['quantity'], item['last_notify_time'], notify)
         if notify:
             #generate email content
             receiver = users_table.find_one({'_id': user_id})
