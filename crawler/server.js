@@ -14,3 +14,6 @@ app.get('/crawl', async (req, res) => {
   }));
   res.status(200).send(results);
 });
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`backend on port ${PORT}!`));
