@@ -18,7 +18,7 @@ scheduler = BlockingScheduler()
 
 print("start crawler schduler...")
 
-@scheduler.scheduled_job('interval', hours=1)
+@scheduler.scheduled_job('interval', minutes=15)
 def crawl_data():
     print("Starting reading from DB...")
     #read from database
@@ -39,7 +39,7 @@ def crawl_data():
         notify = False
         for info in updated_info:
             #if this product is back in stock and we haven't notified user within 12 hours
-            if (info['quantity'] > 0) and (item['last_notify_time'] == None or ((datetime.utcnow() - item['last_notify_time']).seconds / 3600 > 12)):
+            if (info['quantity'] > 0) and (item['last_notify_time'] == None or ((datetime.utcnow() - item['last_notify_time']).seconds / 60 > 20)):
                 notify = True
         if notify:
             #get email of receiver
