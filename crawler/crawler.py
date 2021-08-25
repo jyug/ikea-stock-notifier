@@ -25,7 +25,7 @@ def crawl_data():
     for item in stocks_table.find():
         print("Crawling product: "+str(item['_id']))
         store_list = list()
-        
+        user_id = item['user_id']
         try:
             for store in item['stock_info']:
                 store_list.append(store['store_id'])
@@ -37,7 +37,7 @@ def crawl_data():
                 }
             )
         except Exception as e:
-            send_email(subject='Error Ikea Stock Checker', content=str(e))
+            send_email(subject='Error Ikea Stock Checker', content=str(e), user_id=user_id)
             print('Error checking stock...')
             return
         #Notify user
@@ -47,13 +47,11 @@ def crawl_data():
             if (info['quantity'] > 0) and (item['last_notify_time'] == None or ((datetime.utcnow() - item['last_notify_time']).seconds / 60 > 20)):
                 notify = True
         if notify:
-            #get email of receiver
-            receiver = users_table.find_one({'_id': item['user_id']})
-            print('send to: ' + receiver['user_email'])
             #generate email content
+            receiver = users_table.find_one({'_id': user_id})
             content = generate_email_content(receiver['user_name'], item['_id'], item['product_name'], item['product_desc'], item['product_url'], updated_info)
             #send email
-            send_email(subject='Your IKEA product ' + str(item['product_name']) + ' is back in stock!', contents=content)
+            send_email(subject='Your IKEA product ' + str(item['product_name']) + ' is back in stock!', contents=content, user_id=user_id)
             print("Email sent successfully")
             #update notify time
             stocks_table.update_one(
@@ -65,7 +63,10 @@ def crawl_data():
     print("Finished updating DB...")
     
 
-def send_email(subject, content):
+def send_email(subject, content, user_id):
+    #get email of receiver
+    receiver = users_table.find_one({'_id': user_id})
+    print('send to: ' + receiver['user_email'])
     yag = yagmail.SMTP(user=os.environ['MAILACCOUNT'], password=os.environ['MAILPASSWD'])
     yag.send(to=receiver['user_email'], newline_to_break=False , subject=subject, contents=content)
 
