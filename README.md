@@ -63,6 +63,8 @@ Subscribe to be notified when the product is in stock by pasting the product URL
    $ heroku config:set DOMAIN="<the domain name of ikea-notifier>" --app=ikea-crawler
    $ heroku config:set MAILACCOUNT="<your gmail account>" --app=ikea-crawler
    $ heroku config:set MAILPASSWD="<the app password generated from step4>" --app=ikea-crawler
+   $ heroku config:set DEBUG="set any value to turn on debug mode" --app=ikea-crawler
+   $ heroku config:set SEND_ERROR_EMAIL="send error email to the receiver if an run time error occur when crawling" --app=ikea-crawler
    
    #setup for ikea-notifier app
    $ heroku config:set DATABASEURL="<your MongoDB link>/ikea_products?retryWrites=false" --app=ikea-notifier
