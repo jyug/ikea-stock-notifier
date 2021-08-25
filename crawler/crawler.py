@@ -38,10 +38,10 @@ def crawl_data():
                 }
             )
         except Exception as e:
-            if os.environ.get('SEND_ERROR_EMAIL', '').upper() == 'TRUE':
+            if os.getenv('SEND_ERROR_EMAIL', '').upper() == 'TRUE':
                 err_content = '{}\n{}'.format(str(e), traceback.format_exc())
                 send_email(subject='Error Ikea Stock Checker', content=err_content, user_id=user_id)
-            print('Error checking stock... {}'.format(os.environ.get('SEND_ERROR_EMAIL')))
+            print('Error checking stock... {}'.format(os.getenv('SEND_ERROR_EMAIL')))
             return
         #Notify user
         notify = False
