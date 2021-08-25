@@ -26,15 +26,20 @@ def crawl_data():
         print("Crawling product: "+str(item['_id']))
         store_list = list()
         
-        for store in item['stock_info']:
-            store_list.append(store['store_id'])
-        updated_info = get_stock_info(item['product_id'], store_list)
-        stocks_table.update_one(
-            {'_id': item['_id']},
-            {'$set':
-                {'stock_info': updated_info, 'update_time': datetime.utcnow()}
-            }
-        )
+        try:
+            for store in item['stock_info']:
+                store_list.append(store['store_id'])
+            updated_info = get_stock_info(item['product_id'], store_list)
+            stocks_table.update_one(
+                {'_id': item['_id']},
+                {'$set':
+                    {'stock_info': updated_info, 'update_time': datetime.utcnow()}
+                }
+            )
+        except Exception as e:
+            send_email(subject='Error Ikea Stock Checker', contents=str(e)
+            print('Error checking stock...')
+            return
         #Notify user
         notify = False
         for info in updated_info:
@@ -48,8 +53,7 @@ def crawl_data():
             #generate email content
             content = generate_email_content(receiver['user_name'], item['_id'], item['product_name'], item['product_desc'], item['product_url'], updated_info)
             #send email
-            yag = yagmail.SMTP(user=os.environ['MAILACCOUNT'], password=os.environ['MAILPASSWD'])
-            yag.send(to=receiver['user_email'], newline_to_break=False , subject='Your IKEA product ' + str(item['product_name']) + ' is back in stock!', contents=content)
+            send_email(subject='Your IKEA product ' + str(item['product_name']) + ' is back in stock!', contents=content)
             print("Email sent successfully")
             #update notify time
             stocks_table.update_one(
@@ -60,6 +64,10 @@ def crawl_data():
             )
     print("Finished updating DB...")
     
+
+def send_email(subject, content):
+    yag = yagmail.SMTP(user=os.environ['MAILACCOUNT'], password=os.environ['MAILPASSWD'])
+    yag.send(to=receiver['user_email'], newline_to_break=False , subject=subject, contents=content)
 
 def get_stock_info(product_id, store_list):
     ## database API
