@@ -81,6 +81,7 @@ def notify(status, stores, user_id, item, updated_info):
     receiver = users_table.find_one({'_id': user_id})
     content = generate_email_content(receiver['user_name'], item['_id'], item['product_name'], item['product_desc'], item['product_url'], updated_info)
     stores_str = ','.join([get_store_name_by_id(each) for each in stores])
+    print('STORE STR', stores_str)
     #send emailc
     send_email(subject='Your IKEA product ' + str(item['product_name']) + subject_obj[status].format(stores_str), content=content, user_id=user_id)
     print("Email sent successfully")
