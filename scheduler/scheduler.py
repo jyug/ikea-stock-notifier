@@ -71,6 +71,7 @@ def get_notify_status(data, item):
             status_map['changed'] = status_map.setdefault('changed', []) + [store_id]
             print('CHANGED')
             continue
+    print('STATUS MAP', status_map)
     if len(status_map.get('in_stock', [])) > 0:
         return 'in_stock', status_map['in_stock']
     elif len(status_map.get('out_of_stock', [])) > 0:
