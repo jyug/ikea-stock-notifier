@@ -40,6 +40,7 @@ def crawl_data():
             #Notify user
             status, stores = get_notify_status(updated_info, item)
             if status and stores:
+                print('STATUS: {}, STORES: {}'.format(status, stores))
                 notify(status, stores, user_id, item, updated_info)
         except Exception as e:
             if os.getenv('SEND_ERROR_EMAIL', '').upper() == 'TRUE':
