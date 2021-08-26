@@ -39,7 +39,8 @@ def crawl_data():
             )
             #Notify user
             status, stores = get_notify_status(updated_info, item)
-            notify(status, stores, user_id, item, updated_info)
+            if status and stores:
+                notify(status, stores, user_id, item, updated_info)
         except Exception as e:
             if os.getenv('SEND_ERROR_EMAIL', '').upper() == 'TRUE':
                 err_content = '{}\n{}'.format(str(e), traceback.format_exc())
@@ -69,7 +70,7 @@ def get_notify_status(data, item):
     elif len(status_map.get('out_of_stock', [])) > 0:
         return 'out_of_stock', status_map['out_of_stock']
     else:
-        return 'changed', status_map.get('changed', [])
+        return 'changed', status_map.get('changed', None)
 
 def notify(status, stores, user_id, item, updated_info):
     subject_obj = {
