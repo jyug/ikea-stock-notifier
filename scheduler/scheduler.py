@@ -116,7 +116,7 @@ def get_stock_info(product_id, stock_info):
         store_old = [each for each in stock_info if each.get('store_id') == store.get('buCode')]
         if len(store_old) > 0:
             _dict.update({'quantity_old': store_old[0].get('quantity')})
-        res.append({'store_id': store.get('buCode', 'N/A'), 'quantity': int(store.get('stock', 0))})
+        res.append(_dict)
     return res
 
 def get_store_name_by_id(store_id):
