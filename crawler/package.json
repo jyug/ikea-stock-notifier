@@ -1,0 +1,22 @@
+{
+  "name": "crawler",
+  "version": "1.0.0",
+  "description": "ikea crawler wrapper of opensource ikea-availability-checker",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./server.js"
+  },
+  "keywords": [
+    "ikea"
+  ],
+  "dependencies": {
+    "express": "^4.17.1",
+    "express-async-errors": "^3.1.1",
+    "ikea-availability-checker": "^0.6.15"
+  },
+  "engines": {
+    "node": "14.x"
+  },
+  "author": "jyug",
+  "license": "MIT"
+}
