@@ -123,6 +123,7 @@ def get_store_name_by_id(store_id):
         store_data = json.load(f)
     store_dict = dict()
     for store in store_data:
+        store_number = store.get('storeNumber', -1)
         if store_number == store_id:
             return store_city
     return 'N/A'
