@@ -44,28 +44,46 @@ def crawl_data():
             print('Error checking stock... {}'.format(os.getenv('SEND_ERROR_EMAIL')))
             return
         #Notify user
-        for info in updated_info:
-            #if this product is back in stock and we haven't notified user within 20 mins
-            if info['quantity'] > 0:
-                if item['last_notify_time'] is None:
-                    notify('in_stock', info)
-                elif info['quantity_old'] != info['quantity'] and info['quantity_old'] > 0 and ((datetime.utcnow() - item['last_notify_time']).seconds / 60 > 20)):
-                    notify('changed', info)
-            elif info['quantity_old'] > 0:
-                notify('out_of_stock', info)
+        status, stores = get_notify_status(updated_info)
+        notify(status, stores)
+
     print("Finished updating DB...")
     
-def notify(status, data):
+def get_notify_status(data):
+    status_map = dict()
+    for info in data:
+        store_id = info['store_id']
+        #if this product is back in stock at a store and previously out of stock
+        if info['quantity'] > 0 and (item['last_notify_time'] is None or info['quantity_old']) <= 0:
+            statusmap['instock'] = status_map.setdefault('in_stock', []) + [store_id]
+            continue
+        # if changed to out of stock at one store, previously in stock
+        if info['quantity'] <= 0 and info['quantity_old'] > 0:
+            statusmap['out_of_stock'] = status_map.setdefault('out_of_stock', []) + [store_id]
+            continue
+        # if product stock changes in a certain store and last notification time is more than 20mins ago
+        if info['quantity'] > 0 and info['quantity_old'] != info['quantity'] and info['quantity_old'] > 0 and ((datetime.utcnow() - item['last_notify_time']).seconds / 60 > 20):
+            statusmap['changed'] = status_map.setdefault('changed', []) + [store_id]
+            continue
+    if len(status_map.get('in_stock', [])) > 0:
+        return 'in_stock', status_map['in_stock']
+    elif len(status_map.get('out_of_stock', [])) > 0:
+        return 'out_of_stock', status_map['out_of_stock']
+    else:
+        return 'changed', status_map.get('changed', [])
+
+def notify(status, stores):
     subject_obj = {
-        'in_stock': ' is back in stock!',
-        'changed': ' availability changed',
-        'out_of_stock': ' now sold out at {}'.format(get_store_name_by_id(data['store_id']))
+        'in_stock': ' is back in stock at {}!',
+        'changed': ' availability changed at {}',
+        'out_of_stock': ' now sold out at {}'
     }
     #generate email content
     receiver = users_table.find_one({'_id': user_id})
     content = generate_email_content(receiver['user_name'], item['_id'], item['product_name'], item['product_desc'], item['product_url'], updated_info)
+    stores_str = ','.join([get_store_name_by_id(each) for each in stores])
     #send emailc
-    send_email(subject='Your IKEA product ' + str(item['product_name']) + subject_obj[status], content=content, user_id=user_id)
+    send_email(subject='Your IKEA product ' + str(item['product_name']) + subject_obj[status].format(stores_str), content=content, user_id=user_id)
     print("Email sent successfully")
     #update notify time
     stocks_table.update_one(
