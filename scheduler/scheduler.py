@@ -37,19 +37,18 @@ def crawl_data():
                     {'stock_info': updated_info, 'update_time': datetime.utcnow()}
                 }
             )
+            #Notify user
+            status, stores = get_notify_status(updated_info, item)
+            notify(status, stores)
         except Exception as e:
             if os.getenv('SEND_ERROR_EMAIL', '').upper() == 'TRUE':
                 err_content = '{}\n{}'.format(str(e), traceback.format_exc())
                 send_email(subject='Error Ikea Stock Checker', content=err_content, user_id=user_id)
             print('Error checking stock... {}'.format(os.getenv('SEND_ERROR_EMAIL')))
             return
-        #Notify user
-        status, stores = get_notify_status(updated_info)
-        notify(status, stores)
-
     print("Finished updating DB...")
     
-def get_notify_status(data):
+def get_notify_status(data, item):
     status_map = dict()
     for info in data:
         store_id = info['store_id']
