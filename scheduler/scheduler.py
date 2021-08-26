@@ -52,6 +52,7 @@ def crawl_data():
     
 def get_notify_status(data, item):
     status_map = dict()
+    print('DATA': data)
     for info in data:
         store_id = info['store_id']
         print('QUANTITY: {}, QUANTITY_OLD: {}').format(info['quantity'], info['quantity_old'])
