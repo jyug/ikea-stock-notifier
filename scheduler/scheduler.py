@@ -124,6 +124,7 @@ def get_store_name_by_id(store_id):
     store_dict = dict()
     for store in store_data:
         store_number = store.get('storeNumber', -1)
+        store_city = store.get('storeCity', 'N/A')
         if store_number == store_id:
             return store_city
     return 'N/A'
