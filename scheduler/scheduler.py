@@ -54,6 +54,7 @@ def get_notify_status(data, item):
     status_map = dict()
     for info in data:
         store_id = info['store_id']
+        print('QUANTITY: {}, QUANTITY_OLD: {}').format(info['quantity'], info['quantity_old'])
         #if this product is back in stock at a store and previously out of stock
         if info['quantity'] > 0 and (item['last_notify_time'] is None or info['quantity_old'] <= 0):
             statusmap['instock'] = status_map.setdefault('in_stock', []) + [store_id]
