@@ -67,7 +67,7 @@ def get_notify_status(data, item):
             print('OUT OF STOCK')
             continue
         # if product stock changes in a certain store and last notification time is more than 20mins ago
-        if info['quantity'] > 0 and info['quantity_old'] != info['quantity'] and info['quantity_old'] > 0 and ((datetime.utcnow() - item['last_notify_time']).seconds / 60 > 20):
+        if info['quantity'] > 0 and info['quantity_old'] != info['quantity'] and info['quantity_old'] > 0 and ((datetime.utcnow() - item['last_notify_time']).seconds > 20):
             status_map['changed'] = status_map.setdefault('changed', []) + [store_id]
             print('CHANGED')
             continue
