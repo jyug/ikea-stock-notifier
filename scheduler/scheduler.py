@@ -108,7 +108,7 @@ def get_stock_info(product_id, stock_info):
     assert(r.status_code == 200)
     res = []
     for store in r.json():
-        _dict = {'store_id': store.get('buCode', 'N/A'), 'quantity': int(store.get('stock', 0), 'quantity_old': -1)}
+        _dict = {'store_id': store.get('buCode', 'N/A'), 'quantity': int(store.get('stock', 0)), 'quantity_old': -1)}
         store_old = [each for each in stock_info if each.get('store_id') == store.get('buCode')]
         if len(store_old) > 0:
             _dict.update(quantity_old: store_old[0].get('quantity'))
