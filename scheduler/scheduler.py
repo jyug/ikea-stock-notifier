@@ -58,17 +58,17 @@ def get_notify_status(data, item):
         print('QUANTITY: {}, QUANTITY_OLD: {}'.format(info['quantity'], info['quantity_old']))
         #if this product is back in stock at a store and previously out of stock
         if info['quantity'] > 0 and (item['last_notify_time'] is None or info['quantity_old'] <= 0):
-            statusmap['instock'] = status_map.setdefault('in_stock', []) + [store_id]
+            status_map['instock'] = status_map.setdefault('in_stock', []) + [store_id]
             print('IN STOCK')
             continue
         # if changed to out of stock at one store, previously in stock
         if info['quantity'] <= 0 and info['quantity_old'] > 0:
-            statusmap['out_of_stock'] = status_map.setdefault('out_of_stock', []) + [store_id]
+            status_map['out_of_stock'] = status_map.setdefault('out_of_stock', []) + [store_id]
             print('OUT OF STOCK')
             continue
         # if product stock changes in a certain store and last notification time is more than 20mins ago
         if info['quantity'] > 0 and info['quantity_old'] != info['quantity'] and info['quantity_old'] > 0 and ((datetime.utcnow() - item['last_notify_time']).seconds / 60 > 20):
-            statusmap['changed'] = status_map.setdefault('changed', []) + [store_id]
+            status_map['changed'] = status_map.setdefault('changed', []) + [store_id]
             print('CHANGED')
             continue
     if len(status_map.get('in_stock', [])) > 0:
